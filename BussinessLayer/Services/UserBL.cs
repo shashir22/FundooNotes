@@ -36,7 +36,6 @@ namespace BusinessLayer.Servises
             {
                 throw ex;
             }
-
         }
     }
 }

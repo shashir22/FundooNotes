@@ -80,6 +80,52 @@ namespace RepositoryLayer.Services
             return tokenHandler.WriteToken(token);
         }
 
-      
+
+        // Encryption of the Password
+        public static string EncryptPassword(string password)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(password))
+                {
+                    return null;
+                }
+                else
+                {
+                    byte[] b = Encoding.ASCII.GetBytes(password);
+                    string encrypted = Convert.ToBase64String(b);
+                    return encrypted;
+                }
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+        }
+
+        // Decryption of the password
+        public static string DecryptedPassword(string encryptedPassword)
+        {
+            byte[] b;
+            string decrypted;
+            try
+            {
+                if (string.IsNullOrEmpty(encryptedPassword))
+                {
+                    return null;
+                }
+                else
+                {
+                    b = Convert.FromBase64String(encryptedPassword);
+                    decrypted = Encoding.ASCII.GetString(b);
+                    return decrypted;
+                }
+            }
+            catch (Exception ex)
+            {
+
+                throw ex;
+            }
+        }
     }
 }

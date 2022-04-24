@@ -9,6 +9,6 @@ namespace BusinessLayer.Interfases
     {
         public void AddUser(UserPostModel user);
         public string LoginUser(string Email, string Password);
-
+      
     }
 }
