@@ -8,8 +8,9 @@ using System.Linq;
 
 namespace FundooNotes.Controllers
 {
-    [Route("[controller]")]
     [ApiController]
+    [Route("[controller]")]
+  
     public class UserController : ControllerBase
     {
         IUserBL userBL;
@@ -29,7 +30,7 @@ namespace FundooNotes.Controllers
                 {
                     return this.Ok(new { success = false, message = $"{user.Email} is Already Exists" });
                 }
-              
+                this.userBL.AddUser(user);
                 return this.Ok(new { success = true, message = $"Registration Successfull { user.Email}" });
 
             }
@@ -38,6 +39,29 @@ namespace FundooNotes.Controllers
                 throw ex;
             }
 
+        }
+        [HttpPost("Login")]
+        public ActionResult LoginUser(string Email, string Password)
+        {
+            try
+            {
+                var result = this.userBL.LoginUser(Email, Password);
+                if (result != null)
+                {
+                    return this.Ok(new
+                    {
+                        success = true,
+                        message = $"Login Successful " +
+                        $" token:  {result}"
+                    });
+
+                }
+                return this.BadRequest(new { success = false, message = $"Login Failed" });
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
         }
     }
 }
