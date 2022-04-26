@@ -10,5 +10,8 @@ namespace RepositoryLayer.Interfaces
     {
         public void AddUser(UserPostModel user);
         string LoginUser(string email, string password);
+        bool ForgetPassword(string email);
+        bool ChangePassword(string email, string password, string newpassword);
+      
     }
 }

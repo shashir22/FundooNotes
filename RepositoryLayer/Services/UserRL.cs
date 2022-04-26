@@ -1,4 +1,5 @@
 ﻿using DatabaseLayer;
+using Experimental.System.Messaging;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using RepositoryLayer.FundooNotesContext;
@@ -15,22 +16,23 @@ namespace RepositoryLayer.Services
     public class UserRL : IUserRL
     {
         FundooContext fundoo;
-        private readonly IConfiguration configuration;
+        public IConfiguration Configuration { get; }
         public UserRL(FundooContext fundoo, IConfiguration configuration)
         {
+            this.Configuration = configuration;
             this.fundoo = fundoo;
-            this.configuration = configuration;
         }
         public void AddUser(UserPostModel user)
         {
             try
             {
                 Entity.User user1 = new Entity.User();
+                user1.UserId = new Entity.User().UserId;
                 user1.FirstName = user.FirstName;
                 user1.LastName = user.LastName;
                 user1.Email = user.Email;
                 user1.Adress = user.Adress;
-                user1.Password = user.Password;
+                user1.Password = EncryptPassword(user.Password);
                 user1.registerdDate = DateTime.Now;
                 fundoo.Users.Add(user1);
                 fundoo.SaveChanges();
@@ -44,21 +46,23 @@ namespace RepositoryLayer.Services
         {
             try
             {
-                var result = fundoo.Users.FirstOrDefault(u => u.Email == Email && u.Password == Password);
+                string encrypt = EncryptPassword(Password);
+                var result = fundoo.Users.Where(u => u.Email == Email && u.Password == encrypt).FirstOrDefault();
                 if (result == null)
                 {
                     return null;
                 }
-                return Email;
-                //string Password = Password;
+                return GetJWTToken(Email, result.UserId);
+
             }
             catch (Exception ex)
             {
                 throw ex;
             }
         }
+
         // Generate JWT Token
-        public static string GetJWTToken(string Email, string UserId)
+        public static string GetJWTToken(string Email, int UserId)
         {
             var tokenHandler = new JwtSecurityTokenHandler();
             var tokenKey = Encoding.ASCII.GetBytes("THIS_IS_MY_KEY_TO_GENERATE_TOKEN");
@@ -79,9 +83,6 @@ namespace RepositoryLayer.Services
             var token = tokenHandler.CreateToken(tokenDescriptor);
             return tokenHandler.WriteToken(token);
         }
-
-
-        // Encryption of the Password
         public static string EncryptPassword(string password)
         {
             try
@@ -102,28 +103,107 @@ namespace RepositoryLayer.Services
                 throw ex;
             }
         }
-
-        // Decryption of the password
-        public static string DecryptedPassword(string encryptedPassword)
+        public bool ForgetPassword(string Email)
         {
-            byte[] b;
-            string decrypted;
             try
             {
-                if (string.IsNullOrEmpty(encryptedPassword))
+                var res = fundoo.Users.FirstOrDefault(x => x.Email == Email);
+                if (res == null)
+                    return false;
+
+                //Add message queue
+                MessageQueue queue;
+                if (MessageQueue.Exists(@".\Private$\FundooQueue"))
                 {
-                    return null;
+                    queue = new MessageQueue(@".\Private$\FundooQueue");
                 }
                 else
                 {
-                    b = Convert.FromBase64String(encryptedPassword);
-                    decrypted = Encoding.ASCII.GetString(b);
-                    return decrypted;
+                    queue = MessageQueue.Create(@".\Private$\FundooQueue");
+                }
+                Message message = new Message();
+                message.Formatter = new BinaryMessageFormatter();
+                message.Body = GetJWTToken(Email, res.UserId);
+                message.Label = "Forget Password Email";
+                queue.Send(message);
+                Message msg = queue.Receive();
+                msg.Formatter = new BinaryMessageFormatter();
+                EmailServices.SendMail(Email, msg.Body.ToString());
+                queue.ReceiveCompleted += new ReceiveCompletedEventHandler(msmqQueue_ReceiveCompleted);
+                queue.BeginReceive();
+                queue.Close();
+                return true;
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+        }
+        //GENERATE TOKEN WITH EMAIL
+        public string GenerateToken(string email)
+        {
+            if (email == null)
+            {
+                return null;
+            }
+            var tokenHandler = new JwtSecurityTokenHandler();
+            var tokenKey = Encoding.ASCII.GetBytes("THIS_IS_MY_KEY_TO_GENERATE_TOKEN");
+            var tokenDescriptor = new SecurityTokenDescriptor
+            {
+                Subject = new ClaimsIdentity(new Claim[]
+                {
+                    new Claim("Email",email)
+                }),
+                Expires = DateTime.UtcNow.AddHours(1),
+                SigningCredentials =
+                new SigningCredentials(
+                    new SymmetricSecurityKey(tokenKey),
+                    SecurityAlgorithms.HmacSha256Signature)
+            };
+            var token = tokenHandler.CreateToken(tokenDescriptor);
+            return tokenHandler.WriteToken(token);
+        }
+        private void msmqQueue_ReceiveCompleted(object sender, ReceiveCompletedEventArgs e)
+        {
+            //throw new NotImplementedException();
+            try
+            {
+                MessageQueue queue = (MessageQueue)sender;
+                Message msg = queue.EndReceive(e.AsyncResult);
+                EmailServices.SendMail(e.Message.ToString(), GenerateToken(e.Message.ToString()));
+                queue.BeginReceive();
+            }
+            catch (MessageQueueException ex)
+            {
+                if (ex.MessageQueueErrorCode ==
+                    MessageQueueErrorCode.AccessDenied)
+                {
+                    Console.WriteLine("Access is denied. " +
+                        "Queue might be a system queue.");
+                }
+                // Handle other sources of MessageQueueException.
+            }
+        }
+        public bool ChangePassword(string email, string password, string confirmPassword)
+        {
+            try
+            {
+                if (password.Equals(confirmPassword))
+                {
+                    var user = fundoo.Users.Where(x => x.Email == email).FirstOrDefault();
+
+                    user.Password = EncryptPassword(confirmPassword);
+
+                    fundoo.SaveChanges();
+                    return true;
+                }
+                else
+                {
+                    return false;
                 }
             }
             catch (Exception ex)
             {
-
                 throw ex;
             }
         }
