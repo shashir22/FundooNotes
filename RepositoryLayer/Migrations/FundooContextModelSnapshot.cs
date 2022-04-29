@@ -29,6 +29,9 @@ namespace RepositoryLayer.Migrations
                     b.Property<string>("BGColor")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
                     b.Property<string>("Description")
                         .HasColumnType("nvarchar(max)");
 
@@ -46,6 +49,9 @@ namespace RepositoryLayer.Migrations
 
                     b.Property<bool>("IsTrash")
                         .HasColumnType("bit");
+
+                    b.Property<DateTime>("ModifiedAt")
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("Title")
                         .HasColumnType("nvarchar(max)");

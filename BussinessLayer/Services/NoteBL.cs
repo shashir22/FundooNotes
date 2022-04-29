@@ -9,9 +9,8 @@ using System.Threading.Tasks;
 
 namespace BussinessLayer.Services
 {
-    public class NoteBL:INoteBL
+    public class NoteBL : INoteBL
     {
-
         INoteRL noteRL;
         public NoteBL(INoteRL userRL)
         {
@@ -38,6 +37,83 @@ namespace BussinessLayer.Services
             catch (Exception ex)
             {
                 throw ex;
+            }
+        }
+        public async Task<List<Note>> GetAllNote(int userId)
+        {
+            try
+            {
+                return await this.noteRL.GetAllNote(userId);
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+        }
+        public async Task<Note> UpdateNote(NotePostModel notePostModel, int noteId, int userId)
+        {
+            try
+            {
+                return await this.noteRL.UpdateNote(notePostModel, noteId, userId);
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+        }
+        public Task DeleteNote(int noteId, int userId)
+        {
+            try
+            {
+                return this.noteRL.DeleteNote(noteId, userId);
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+        }
+        public Task<Note> ArchieveNote(int noteId, int userId)
+        {
+            try
+            {
+                return this.noteRL.ArchieveNote(noteId, userId);
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+        }
+        public Task<Note> PinNote(int noteId, int userId)
+        {
+            try
+            {
+                return this.noteRL.PinNote(noteId, userId);
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+        }
+        public Task<Note> TrashNote(int noteId, int userId)
+        {
+            try
+            {
+                return noteRL.TrashNote(noteId, userId);
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+        }
+        public Task<Note> ChangeColor(int noteId, int userId, string newColor)
+        {
+            try
+            {
+                return this.noteRL.ChangeColor(noteId, userId, newColor);
+            }
+            catch (Exception e)
+            {
+                throw e;
             }
         }
     }

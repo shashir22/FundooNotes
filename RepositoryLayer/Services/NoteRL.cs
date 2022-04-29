@@ -39,10 +39,11 @@ namespace RepositoryLayer.Services
                 note.Title = notePostModel.Title;
                 note.Description = notePostModel.Description;
                 note.BGColor = notePostModel.BGColor;
-                note.IsArchive = notePostModel.IsArchive;
-                note.IsReminder = notePostModel.IsReminder;
-                note.IsPin = notePostModel.IsPin;
-                note.IsTrash = notePostModel.IsTrash;
+                note.IsArchive = false;
+                note.IsReminder = false;
+                note.IsPin = false;
+                note.IsTrash = false;
+                note.CreatedAt = DateTime.Now;
 
                 fundoo.Add(note);
                 await fundoo.SaveChangesAsync();
@@ -52,18 +53,178 @@ namespace RepositoryLayer.Services
                 throw ex;
             }
         }
-
         public async Task<Note> GetNote(int noteId, int userId)
         {
             try
             {
                 return await fundoo.Notes.Where(u => u.NoteId == noteId && u.UserId == userId)
-                   .Include(u => u.User).FirstOrDefaultAsync();
+                .Include(u => u.User).FirstOrDefaultAsync();
             }
             catch (Exception ex)
             {
                 throw ex;
             }
         }
+        public async Task<List<Note>> GetAllNote(int userId)
+        {
+            try
+            {
+                return await fundoo.Notes.Where(u => u.UserId == userId).Include(u => u.User).ToListAsync();
+            }
+            catch (Exception e)
+            {
+                throw e;
+            }
+        }
+        public async Task DeleteNote(int noteId, int userId)
+        {
+            try
+            {
+                Note res = fundoo.Notes.FirstOrDefault(u => u.NoteId == noteId && u.UserId == userId);
+                fundoo.Notes.Remove(res);
+                await fundoo.SaveChangesAsync();
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+        }
+        public async Task<Note> UpdateNote(NotePostModel notePostModel, int noteId, int userId)
+        {
+            try
+            {
+                var res = fundoo.Notes.FirstOrDefault(u => u.NoteId == noteId && u.UserId == userId);
+                if (res != null)
+                {
+                    res.Title = notePostModel.Title;
+                    res.Description = notePostModel.Description;
+                    res.BGColor = notePostModel.BGColor;
+                    res.IsArchive = notePostModel.IsArchive;
+                    res.IsReminder = notePostModel.IsReminder;
+                    res.IsPin = notePostModel.IsPin;
+                    res.IsTrash = notePostModel.IsTrash;
+                    res.ModifiedAt = DateTime.Now;
+                    await fundoo.SaveChangesAsync();
+
+                    return await fundoo.Notes.Where(a => a.NoteId == noteId).FirstOrDefaultAsync();
+                }
+                else
+                {
+                    return null;
+                }
+            }
+            catch (Exception e)
+            {
+                throw e;
+            }
+        }
+        public async Task<Note> ArchieveNote(int noteId, int userId)
+        {
+            try
+            {
+                var res = fundoo.Notes.FirstOrDefault(u => u.NoteId == noteId && u.UserId == userId);
+                if (res != null)
+                {
+                    if (res.IsArchive == false)
+                    {
+                        res.IsArchive = true;
+                    }
+                    else
+                    {
+                        res.IsArchive = false;
+                    }
+                    await fundoo.SaveChangesAsync();
+                    return await fundoo.Notes.Where(a => a.NoteId == noteId).FirstOrDefaultAsync();
+                }
+                else
+                {
+                    return null;
+                }
+            }
+            catch (Exception e)
+            {
+                throw e;
+            }
+        }
+        public async Task<Note> PinNote(int noteId, int userId)
+        {
+            try
+            {
+                var res = fundoo.Notes.FirstOrDefault(u => u.NoteId == noteId && u.UserId == userId);
+                if (res != null)
+                {
+                    if (res.IsPin == false)
+                    {
+                        res.IsPin = true;
+                    }
+                    if (res.IsPin == true)
+                    {
+                        res.IsPin = false;
+                    }
+                    await fundoo.SaveChangesAsync();
+                    return await fundoo.Notes.Where(a => a.NoteId == noteId).FirstOrDefaultAsync();
+                }
+                else
+                {
+                    return null;
+                }
+            }
+            catch (Exception e)
+            {
+                throw e;
+            }
+        }
+        public async Task<Note> TrashNote(int noteId, int userId)
+        {
+            try
+            {
+                var res = fundoo.Notes.FirstOrDefault(u => u.NoteId == noteId && u.UserId == userId);
+                if (res != null)
+                {
+                    if (res.IsTrash == false)
+                    {
+                        res.IsTrash = true;
+                    }
+                    if (res.IsTrash == true)
+                    {
+                        res.IsTrash = false;
+                    }
+                    await fundoo.SaveChangesAsync();
+                    return await fundoo.Notes.Where(a => a.NoteId == noteId).FirstOrDefaultAsync();
+                }
+                else
+                {
+                    return null;
+                }
+            }
+            catch (Exception e)
+            {
+                throw e;
+            }
+        }
+        public async Task<Note> ChangeColor(int noteId, int userId, string newColor)
+        {
+            try
+            {
+                var res = fundoo.Notes.FirstOrDefault(u => u.NoteId == noteId && u.UserId == userId);
+                if (res != null)
+                {
+                    res.BGColor = newColor;
+                    await fundoo.SaveChangesAsync();
+                    return await fundoo.Notes.Where(a => a.NoteId == noteId).FirstOrDefaultAsync();
+                }
+                else
+                {
+                    return null;
+                }
+            }
+            catch (Exception e)
+            {
+                throw e;
+            }
+
+        }
+
     }
 }
+  

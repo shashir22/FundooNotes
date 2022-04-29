@@ -10,8 +10,8 @@ using RepositoryLayer.FundooNotesContext;
 namespace RepositoryLayer.Migrations
 {
     [DbContext(typeof(FundooContext))]
-    [Migration("20220427071918_Notes")]
-    partial class Notes
+    [Migration("20220429050853_Users")]
+    partial class Users
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -31,6 +31,9 @@ namespace RepositoryLayer.Migrations
                     b.Property<string>("BGColor")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
                     b.Property<string>("Description")
                         .HasColumnType("nvarchar(max)");
 
@@ -48,6 +51,9 @@ namespace RepositoryLayer.Migrations
 
                     b.Property<bool>("IsTrash")
                         .HasColumnType("bit");
+
+                    b.Property<DateTime>("ModifiedAt")
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("Title")
                         .HasColumnType("nvarchar(max)");
