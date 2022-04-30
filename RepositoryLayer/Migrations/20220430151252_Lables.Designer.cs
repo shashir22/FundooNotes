@@ -10,8 +10,8 @@ using RepositoryLayer.FundooNotesContext;
 namespace RepositoryLayer.Migrations
 {
     [DbContext(typeof(FundooContext))]
-    [Migration("20220429050853_Users")]
-    partial class Users
+    [Migration("20220430151252_Lables")]
+    partial class Lables
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -20,6 +20,31 @@ namespace RepositoryLayer.Migrations
                 .HasAnnotation("ProductVersion", "3.1.0")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128)
                 .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
+
+            modelBuilder.Entity("RepositoryLayer.Entity.Label", b =>
+                {
+                    b.Property<int>("LabelId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
+
+                    b.Property<string>("LabelName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("NoteId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("userId")
+                        .HasColumnType("int");
+
+                    b.HasKey("LabelId");
+
+                    b.HasIndex("NoteId");
+
+                    b.HasIndex("userId");
+
+                    b.ToTable("Labels");
+                });
 
             modelBuilder.Entity("RepositoryLayer.Entity.Note", b =>
                 {
@@ -100,6 +125,17 @@ namespace RepositoryLayer.Migrations
                         .HasFilter("[Email] IS NOT NULL");
 
                     b.ToTable("Users");
+                });
+
+            modelBuilder.Entity("RepositoryLayer.Entity.Label", b =>
+                {
+                    b.HasOne("RepositoryLayer.Entity.Note", "Note")
+                        .WithMany()
+                        .HasForeignKey("NoteId");
+
+                    b.HasOne("RepositoryLayer.Entity.User", "User")
+                        .WithMany()
+                        .HasForeignKey("userId");
                 });
 
             modelBuilder.Entity("RepositoryLayer.Entity.Note", b =>
